@@ -1,3 +1,6 @@
-for(var a=1; a < 10; a=a+1){
-    print a;
+fun fib(n) {
+    print n;
+    var n="nn";
+    n(1);
+    print test();
 }

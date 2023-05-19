@@ -44,6 +44,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(CLASS)) return classDeclaration();
             if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration();
             return statement();
@@ -53,8 +54,27 @@ public class Parser {
         }
     }
 
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "期待类名称");
+        Expr.Variable superclass = null;
+        if (match(LESS)) {
+            consume(IDENTIFIER, "期待的是超类。");
+            superclass = new Expr.Variable(previous());
+        }
+        consume(LEFT_BRACE, "期待的是：'{'");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RIGHT_BRACE)) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "期待的是：'}'");
+
+        return new Stmt.Class(name, superclass, methods);
+    }
+
     private Stmt.Function function(String kind) {
-        Token name = consume(IDENTIFIER, "期待" + kind + "name");
+        Token name = consume(IDENTIFIER, "期待" + kind + " 名称");
         consume(LEFT_PAREN, "期待的是：'('");
         List<Token> parameters = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
@@ -204,6 +224,8 @@ public class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get get) {
+                return new Expr.Set(get.object, get.name, value);
             }
 
             error(equals, "非法的表达式");
@@ -315,6 +337,9 @@ public class Parser {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(DOT)) {
+                Token name = consume(IDENTIFIER, "在'.'后期待变量名称。");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
@@ -349,6 +374,15 @@ public class Parser {
         if (match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
         }
+
+        if (match(SUPER)) {
+            Token keyword = previous();
+            consume(DOT, "期待的是：'.'");
+            Token method = consume(IDENTIFIER, "期待的是超类方法名称");
+            return new Expr.Super(keyword, method);
+        }
+
+        if (match(THIS)) return new Expr.This(previous());
 
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());

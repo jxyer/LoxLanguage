@@ -1,6 +1,14 @@
-fun fib(n) {
-    print n;
-    var n="nn";
-    n(1);
-    print test();
+class Doughnut {
+  cook() {
+    print "父类。";
+  }
 }
+
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+    print "子类。";
+  }
+}
+
+BostonCream().cook();

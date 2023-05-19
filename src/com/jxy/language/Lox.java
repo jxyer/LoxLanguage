@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+//todo 解析类
 public class Lox {
     private static final Interpreter interpreter = new Interpreter();
     static boolean hadError = false;
@@ -49,6 +50,11 @@ public class Lox {
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
         if (hadError) return;
+
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+        if (hadError) return;
+
         interpreter.interpret(statements);
     }
 

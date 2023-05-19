@@ -43,4 +43,21 @@ public class Environment {
 
         throw new RuntimeError(name, "未定义的变量" + name.lexeme + "。");
     }
+
+    public Object getAt(Integer distance, String name) {
+        return ancestor(distance).values.get(name);
+    }
+
+    private Environment ancestor(int distance) {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++) {
+            assert environment != null;
+            environment = environment.enclosing;
+        }
+        return environment;
+    }
+
+    public void assignAt(Integer distance, Token name, Object value) {
+        ancestor(distance).values.put(name.lexeme, value);
+    }
 }
